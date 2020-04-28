@@ -1,25 +1,53 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
-
 class Login extends CI_Controller {
+	public function __construct(){
+		parent::__construct();
+	}
+	public function index(){
+		$this->load->view('view_login');
+	}
+	function autentikasi_user(){
+		$username = htmlspecialchars($this->input->post('username',TRUE),ENT_QUOTES);
+		$password = htmlspecialchars($this->input->post('password',TRUE),ENT_QUOTES);
 
-	/**
-	 * Index Page for this controller.
-	 *
-	 * Maps to the following URL
-	 * 		http://example.com/index.php/welcome
-	 *	- or -
-	 * 		http://example.com/index.php/welcome/index
-	 *	- or -
-	 * Since this controller is set as the default controller in
-	 * config/routes.php, it's displayed at http://example.com/
-	 *
-	 * So any other public methods not prefixed with an underscore will
-	 * map to /index.php/welcome/<method_name>
-	 * @see https://codeigniter.com/user_guide/general/urls.html
-	 */
-	public function index()
-	{
-		$this->load->view('login.php');
+		echo $username."<br>";
+		$password = md5($password);
+		echo $password;
+
+
+		$cek_user = $this->model_masyarakat->cari_user($username, $password);
+
+		if ($cek_user->num_rows() > 0){
+			$data = $cek_user->row_array();
+			$this->session->set_userdata('masuk', TRUE);
+			if ($data['level'] == 'masyarakat'){
+				$this->session->set_userdata('level','masyarakat');
+				$this->session->set_userdata('ses_username',$data['username']);
+				$this->session->set_userdata('ses_password', $data['password']);
+				redirect('main/dashboard');
+			}elseif ($data['level'] == 'admin') {
+				$this->session->set_userdata('level','masyarakat');
+				$this->session->set_userdata('ses_username',$data['username']);
+				$this->session->set_userdata('ses_password', $data['password']);
+				redirect('panel');
+			}elseif ($data['level'] == 'petugas') {
+				$this->session->set_userdata('level','masyarakat');
+				$this->session->set_userdata('ses_username',$data['username']);
+				$this->session->set_userdata('ses_password', $data['password']);
+				redirect('panel');
+			}
+		}else{
+			redirect('login');
+		}
+
+	}
+
+	function logout(){
+		$this->session->sess_destroy();
+		redirect(base_url('login'));
+  	}
+
+	public function register(){
+		$this->load->view('view_register.php');
 	}
 }
